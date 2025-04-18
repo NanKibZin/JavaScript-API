@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+      crossorigin="anonymous"
+    />
+
+    <title>Document</title>
+  </head>
+  <body>
+    <header class="bg-dark p-3 d-flex justify-content-between container">
+      <h3 class="text-light text-center">Js + Laravel</h3>
+      <button
+        data-bs-toggle="modal"
+        data-bs-target="#exampleModal"
+        class="btn btn-primary"
+      >
+        Add Product
+      </button>
+      <button onclick="logout()" class="btn btn-danger">LogOut</button>
+    </header>
+    <div class="container mt-3">
+      <table class="table table-bordered">
+        <tr>
+          <th>ID</th>
+          <th>IMage</th>
+          <th>Post Title</th>
+          <th>Desciption</th>
+          <th>Action</th>
+        </tr>
+        <tbody class="allPost"></tbody>
+      </table>
+    </div>
+
+    <!-- Modal -->
+    <div
+      class="modal fade"
+      id="exampleModal"
+      tabindex="-1"
+      aria-labelledby="exampleModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form
+              method="POST"
+              id="formCreatePost"
+              class="formCreatePost"
+              enctype="multipart/form-data"
+            >
+              <div class="form-group">
+                <label for="">Post Title</label>
+                <input type="text" name="name" class="form-control" />
+              </div>
+              <div class="form-group">
+                <label for="">Post Des</label>
+                <textarea row="5" name="desc" class="form-control"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="">Post IMage</label>
+                <input type="file" name="image" class="form-control" />
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+            <button onclick="storePost()" type="button" class="btn btn-primary">
+              Save changes
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- //model update -->
+    <div
+      class="modal fade"
+      id="exampleModalUpdate"
+      tabindex="-1"
+      aria-labelledby="exampleModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form
+              method="POST"
+              id="formUpdatePost"
+              class="formCreatePost"
+              enctype="multipart/form-data"
+            >
+              <div class="form-group">
+                <label for="">Post Title</label>
+                <input type="text" name="name" class="form-control name" />
+                <input type="text" name="id" class="form-control id" />
+              </div>
+              <div class="form-group">
+                <label for="">Post Des</label>
+                <textarea
+                  row="5"
+                  name="desc"
+                  class="form-control desc"
+                ></textarea>
+              </div>
+              <div class="form-group">
+                <label for="">Post IMage</label>
+                <input type="file" name="image" class="form-control image" />
+              </div>
+              <div class="show-image"></div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+            <button
+              onclick=" updatePost()"
+              type="button"
+              class="btn btn-primary"
+            >
+              update
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script>
+    if (localStorage.getItem("token") == null) {
+      window.location.href = "login.html";
+    }
+    var url = "http://127.0.0.1:8000/api";
+    // var token = "12|VjlZQLy5UGTnGaB48eWxKY7aPhJYrbC1ZDMwaALG67925759";
+    var token = localStorage.getItem("token");
+    //arrow function es6
+    let showPost = document.querySelector(".allPost");
+    const Posts = async () => {
+      let response = await fetch(url + "/product", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json", // Fixed header name with hyphen
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      let data = await response.json();
+      console.log("API response data:", data);
+      let allPost = data.product; // Change from data.posts to data.product
+      showPost.innerHTML = "";
+      if (allPost && allPost.length > 0) {
+        allPost.forEach((post) => {
+          let tr = `
+              <tr>
+                <td>${post.id}</td>
+                <td>
+                    <img style="width:80px; height:80px" src="${post.image}">
+                    </td>
+                <td>${post.name}</td>
+                <td>${post.desc}</td>
+                <td>
+                    <button onclick="editPost(${post.id})"  data-bs-toggle="modal"
+                 data-bs-target="#exampleModalUpdate" class="btn btn-danger">Edit</button>
+                    <button onclick="deletePost(${post.id})" class="btn btn-success">Delete</button>
+                </td>
+              </tr>
+            `;
+          showPost.innerHTML += tr;
+        });
+      } else {
+        showPost.innerHTML =
+          '<tr><td colspan="5" class="text-center">No products found</td></tr>';
+      }
+    };
+    Posts();
+    const storePost = async () => {
+      let payload = new FormData(document.getElementById("formCreatePost"));
+      let response = await fetch(url + "/store", {
+        method: "POST",
+        headers: {
+          ContentType: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: payload,
+      });
+      if (response.ok) {
+        Posts();
+        $("#exampleModal").modal("hide");
+        $("#formCreatePost").trigger("reset");
+      }
+    };
+
+    const logout = async () => {
+      if (confirm("Are you sure that you want to logout")) {
+        let response = await fetch(url + "/logout", {
+          method: "POST",
+          headers: {
+            ContentType: "application/json", // Fixed header name with hyphen
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (response.ok) {
+          localStorage.removeItem("token");
+          window.location.href = "login.html";
+        }
+      }
+    };
+
+    const updatePost = async () => {
+      let payload = new FormData(document.getElementById("formUpdatePost"));
+      let id = payload.get("id");
+      // alert(id)
+      let response = await fetch(url + `/update/${id}`, {
+        method: "POST",
+        headers: {
+          ContentType: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: payload,
+      });
+      if (response.ok) {
+        Posts();
+        $("#exampleModalUpdate").modal("hide");
+        $("#formUpdatePost").trigger("reset");
+      }
+    };
+    const deletePost = async (id) => {
+      if (confirm("Do you want to delete this post")) {
+        let response = await fetch(url + `/delete/${id}`, {
+          method: "POST",
+          headers: {
+            ContentType: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (response.ok) {
+          Posts();
+        }
+      }
+    };
+    const editPost = async (id) => {
+      let response = await fetch(url + `/edit/${id}`, {
+        method: "GET",
+        headers: {
+          ContentType: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      let data = await response.json();
+      let post = data.product;
+      console.log(post);
+      document.querySelector(".name").value = post.name;
+      document.querySelector(".id").value = post.id;
+      document.querySelector(".desc").innerText = post.desc;
+      document.querySelector(".show-image").innerHTML = `
+     <input type="text" value="${post.image}" name="old-image">
+     <img src="${post.image}" style="width:100px">
+     `;
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js
+  
+"></script>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+    integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  ></script>
+</html>

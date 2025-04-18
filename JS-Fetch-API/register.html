@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login</title>
+  </head>
+  <body>
+    <div class="container">
+      <form action="" method="POST" id="formLogin">
+        <div class="form-group">
+          <label for="">Name</label>
+          <input type="text" name="name" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label for="">Email</label>
+          <input type="email" name="email" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label for="">Password</label>
+          <input type="password" name="password" class="form-control" />
+        </div>
+        <button type="button" onclick="register()">Register</button>
+        <div>
+          <p>you have an account <a href="login.html">login</a></p>
+        </div>
+      </form>
+    </div>
+  </body>
+  <script>
+    var url = "http://127.0.0.1:8000/api";
+    var token = "12|VjlZQLy5UGTnGaB48eWxKY7aPhJYrbC1ZDMwaALG67925759";
+    const register = async () => {
+      let payload = new FormData(document.getElementById("formLogin"));
+      let response = await fetch(url + "/register", {
+        method: "POST",
+        headers: {
+          ContentType: "application/json",
+        },
+        body: payload,
+      });
+      let data = await response.json();
+      localStorage.setItem("token", data.token);
+      //redirect to post page
+      window.location.href = "http://127.0.0.1:5500/post.html";
+      if (response.ok) {
+      }
+    };
+  </script>
+</html>
